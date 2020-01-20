@@ -1,20 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 #!pip3 install albumentations
-
-
-# In[2]:
-
-
-#!pip3 install qtconsole
-#get_ipython().run_line_magic('qtconsole', '#for editing variables on the fly without creating cells!! isnt that awesome?')
-
-
-# In[4]:
 
 
 from keras.layers import Input
@@ -40,8 +25,10 @@ import albumentations as A
 img = cv2.imread("template.jpg")
 rows, cols, ch = img.shape
 
-width=128
-height=128
+continue_train = False
+
+width=256
+height=256
 dim = (width, height)
 # resize image
 img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
@@ -56,7 +43,7 @@ def getdata(img,count,disp=False):
     #input images with template and thus generating transform matrix
     xtrain=[]
     ytrain=[]
-    d=20
+    d=40
     
     pts1 = np.float32([[0, 0], [width, 0], [width, height]])
 
@@ -98,77 +85,62 @@ def getdata(img,count,disp=False):
         
         if disp==True:
             cv2.imshow("Affine transformation", result)
-            cv2.waitKey(100)
+            cv2.waitKey(30)
     cv2.destroyAllWindows()
     xtrain = np.array(xtrain, dtype=np.float32)
     ytrain = np.array(ytrain, dtype=np.float32)
     return(xtrain/255.0, ytrain)
 
 
-# In[7]:
-
-
 batch_size = 64
-
-
-# In[94]:
 
 
 xtrain, ytrain = getdata(img,batch_size*1, disp=True)
 
 
-# In[95]:
-
-
 xval, yval = getdata(img,batch_size*3, disp=True)
-
-
-# In[80]:
-
-
-#xtest, ytest = getdata(img,batch_size*3)
-
-
-# In[81]:
-
-
-xtrain.shape
-
-
-# In[82]:
-
-
-ytrain.shape
-
-
-# In[83]:
 
 
 #from utils1 import get_initial_weights
 #from layers import BilinearInterpolation
 
-def localizer(input_shape=(width, height, 3), sampling_size=(30, 30), num_classes=10):
+def localizer(input_shape=(width, height, 3), num_classes=10):
     image = Input(shape=input_shape)
+    
     locnet = Conv2D(20, (5, 5))(image)
     locnet = BatchNormalization()(locnet)
     locnet = MaxPool2D(pool_size=(2, 2))(locnet)
     locnet = Activation('relu')(locnet)
+    
     locnet = Conv2D(20, (5, 5))(locnet)
     locnet = BatchNormalization()(locnet)
     locnet = MaxPool2D(pool_size=(2, 2))(locnet)
     locnet = Activation('relu')(locnet)
+    
+    locnet = Conv2D(20, (5, 5))(locnet)
+    locnet = BatchNormalization()(locnet)
+    locnet = MaxPool2D(pool_size=(2, 2))(locnet)
+    locnet = Activation('relu')(locnet)
+    
+    locnet = Conv2D(20, (5, 5))(locnet)
+    locnet = BatchNormalization()(locnet)
+    locnet = MaxPool2D(pool_size=(2, 2))(locnet)
+    locnet = Activation('relu')(locnet)
+    
     locnet = Conv2D(40, (5, 5))(locnet)
     locnet = BatchNormalization()(locnet)
     locnet = Activation('relu')(locnet)
+    
     locnet = Flatten()(locnet)
     locnet = Dense(50)(locnet)
     locnet = Activation('relu')(locnet)
-    #weights = get_initial_weights(50)
+    
     theta = Dense(6)(locnet)
+    
     return Model(inputs=image, outputs=theta)
 
 
-if True:
+if continue_train==True:
     model = load_model('weight.h5')
 else:
     model = localizer()
@@ -187,9 +159,6 @@ def transform(img,matrix):
     img2= img2.astype(np.float32)
     img2 = img2/255.0
     return img2
-
-
-# In[86]:
 
 
 def transform_plot(x_batch,y_batch, matrices):
@@ -216,10 +185,7 @@ def transform_plot(x_batch,y_batch, matrices):
     plt.show()
 
 
-# In[88]:
-
-
-num_epochs = 10
+num_epochs = 100
 loss=[]
 #val_score1=20
 val_score1 =np.load('val_score1.npy')
