@@ -1,7 +1,3 @@
-
-#!pip3 install albumentations
-
-
 from keras.layers import Input
 from keras.models import Model,load_model,save_model
 from keras.layers import Activation,BatchNormalization
@@ -17,8 +13,7 @@ import matplotlib.pyplot as plt
 
 import albumentations as A
 
-
-# In[5]:
+#!pip3 install albumentations
 
 
 #read template image
@@ -29,12 +24,15 @@ continue_train = False
 
 width=256
 height=256
+
+batch_size = 8
+
+val_score1 = 1000 # np.load('val_score1.npy')
+
+
 dim = (width, height)
 # resize image
 img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
-
-
-# In[6]:
 
 
 def getdata(img,count,disp=False):
@@ -92,8 +90,6 @@ def getdata(img,count,disp=False):
     return(xtrain/255.0, ytrain)
 
 
-batch_size = 64
-
 
 xtrain, ytrain = getdata(img,batch_size*1, disp=True)
 
@@ -145,6 +141,7 @@ if continue_train==True:
 else:
     model = localizer()
     model.compile(loss='mean_squared_error', optimizer='adam')
+    val_score1 =10000000
 model.summary()
 
 
@@ -188,7 +185,7 @@ def transform_plot(x_batch,y_batch, matrices):
 num_epochs = 100
 loss=[]
 #val_score1=20
-val_score1 =np.load('val_score1.npy')
+
 for epoch_arg in range(num_epochs):
     xtrain, ytrain = getdata(img,batch_size*16)
     for batch_arg in range(xtrain.shape[0]//batch_size):
