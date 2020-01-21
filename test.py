@@ -18,6 +18,9 @@ def transform(img,matrix):
     return img2
     
 if __name__ == '__main__':
+
+    model = load_model('weight.h5')
+    
     #read template image
     img = cv2.imread("test/IMG_20200120_210926.jpg")
     img0 = cv2.imread("template.jpg")
@@ -30,7 +33,7 @@ if __name__ == '__main__':
     img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
     img0 = cv2.resize(img0, dim, interpolation = cv2.INTER_AREA) 
 
-    model = load_model('weight.h5')
+    
 
     img1 = img/255.0
     img1 = np.expand_dims(img1, axis=0)

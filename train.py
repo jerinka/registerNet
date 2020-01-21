@@ -20,14 +20,18 @@ import albumentations as A
 img = cv2.imread("template.jpg")
 rows, cols, ch = img.shape
 
-continue_train = False
 
-width=256
-height=256
+width=128
+height=128
 
-batch_size = 8
+batch_size = 64
 
-val_score1 = 1000 # np.load('val_score1.npy')
+num_epochs = 100
+
+continue_train = True
+
+
+val_score1 = .5 #np.load('val_score1.npy')
 
 
 dim = (width, height)
@@ -41,7 +45,7 @@ def getdata(img,count,disp=False):
     #input images with template and thus generating transform matrix
     xtrain=[]
     ytrain=[]
-    d=40
+    d=20
     
     pts1 = np.float32([[0, 0], [width, 0], [width, height]])
 
@@ -53,11 +57,17 @@ def getdata(img,count,disp=False):
     '''
     aug = A.Compose([
     A.RandomBrightnessContrast(p=.5),    
-    A.RandomGamma(p=.5),    
+    A.RandomGamma(p=.5), 
+    A.RandomRain(brightness_coefficient=0.9, drop_width=1, blur_value=5, p=.5),
+    A.RandomShadow(num_shadows_lower=1, num_shadows_upper=1, 
+                        shadow_dimension=5, shadow_roi=(0, 0.5, 1, 1),p=.5),
+                        
+    A.RandomFog(fog_coef_lower=0.1, fog_coef_upper=0.5, alpha_coef=0.1, p=.5),
+    #A.RandomSunFlare(flare_roi=(0, 0, 0.2, 0.2), angle_lower=0.2, p=.5),
     #A.CLAHE(p=1), 
     A.HueSaturationValue(hue_shift_limit=3, sat_shift_limit=50, val_shift_limit=50, p=.5),
     
-    ], p=.5)
+    ], p=.8)
     
     for i in range(count):
         
@@ -120,7 +130,7 @@ def localizer(input_shape=(width, height, 3), num_classes=10):
     
     locnet = Conv2D(20, (5, 5))(locnet)
     locnet = BatchNormalization()(locnet)
-    locnet = MaxPool2D(pool_size=(2, 2))(locnet)
+    #locnet = MaxPool2D(pool_size=(2, 2))(locnet)
     locnet = Activation('relu')(locnet)
     
     locnet = Conv2D(40, (5, 5))(locnet)
@@ -182,7 +192,7 @@ def transform_plot(x_batch,y_batch, matrices):
     plt.show()
 
 
-num_epochs = 100
+
 loss=[]
 #val_score1=20
 
@@ -207,7 +217,7 @@ for epoch_arg in range(num_epochs):
             model.save('weight.h5')
         
             matrices = model.predict_on_batch(x_batch)
-            transform_plot(x_batch,y_batch, matrices)
+            #transform_plot(x_batch,y_batch, matrices)
             print('-' * 40)
     print()
 

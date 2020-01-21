@@ -1,8 +1,3 @@
-"""
-Created on Wed Aug 15 18:44:28 2018
-Simple regression example for Keras (v2.2.2) with Boston housing data
-@author: tobigithub
-"""
 from tensorflow import set_random_seed
 from keras.datasets import boston_housing
 from keras.models import Sequential
